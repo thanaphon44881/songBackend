@@ -18,10 +18,8 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-
-	if err != nil {
-		log.Fatal("โหลด .env ไม่ได้")
+	if err := godotenv.Load(); err != nil {
+		log.Println(".env not found, using system environment")
 	}
 	dsn := os.Getenv("HDAtABACE")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
