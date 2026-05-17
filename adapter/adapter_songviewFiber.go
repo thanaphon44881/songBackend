@@ -24,7 +24,6 @@ func (h *songViewHttpsHandler) Create(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid body"})
 	}
-
 	err := h.service.Creat(userID, body.SongID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})

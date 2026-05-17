@@ -1,14 +1,15 @@
 package adapter
 
 import (
-	"fmt"
 	"music/service"
-	"strconv"
-	"time"
 	"net/url"
-	"github.com/gofiber/fiber/v2"
 	"os"
 	"path/filepath"
+	"strconv"
+
+	"music/utils"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type artistHttpsHandler struct {
@@ -20,31 +21,37 @@ func NewArtistHttps(s service.ServiceArtist) *artistHttpsHandler {
 }
 
 func (a *artistHttpsHandler) SaveArtist(c *fiber.Ctx) error {
-	Name := c.FormValue("name")
-	Bio := c.FormValue("bio")
-
+	name := c.FormValue("name")
+	bio := c.FormValue("bio")
+	if string(name) == "" || string(bio) == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "image required"})
+	}
 	file, err := c.FormFile("image")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "image required"})
 	}
-	filenames := fmt.Sprintf("%d_%s", time.Now().Unix(), file.Filename)
-	path := "./uploads/artists/" + filenames
+	// filenames := fmt.Sprintf("%d_%s", time.Now().Unix(), file.Filename)
+	// path := "./uploads/artists/" + filenames
 
-	artists := service.Artist{
-		Name:  Name,
-		Bio:   Bio,
-		Image: "/artists/" + filenames,
+	imageURL, err := utils.UploadArtist(file)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	artists := service.Artist{
+		Name:  name,
+		Bio:   bio,
+		Image: imageURL,
+	}
 	err = a.service.Create(artists)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	err = c.SaveFile(file, path)
-	if err != nil {
-		return err
-	}
+	// err = c.SaveFile(file, path)
+	// if err != nil {
+	// 	return err
+	// }
 	return c.Status(fiber.StatusCreated).JSON(artists)
 }
 

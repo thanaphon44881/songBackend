@@ -47,10 +47,10 @@ type ArtistResponse struct {
 }
 
 type Artist struct {
-	ID    uint   `json:"ID"`
-	Name  string `json:"Name"`
-	Image string `json:"Image"`
-	Bio   string `json:"Bio"`
+	ID    uint   `json:"id"`
+	Name  string `json:"name"`
+	Image string `json:"image"`
+	Bio   string `json:"bio"`
 }
 
 type SongResponse struct {

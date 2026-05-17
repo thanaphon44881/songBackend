@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"music/service"
 	"music/slugs"
+	"music/utils"
 	"path/filepath"
 	"strconv"
-	"time"
 
 	"net/url"
 	"os"
@@ -36,6 +36,7 @@ func (s *songHttpsHandler) SaveSong(c *fiber.Ctx) error {
 		})
 	}
 	artistStr := c.FormValue("artist_id")
+	fmt.Println("art", artistStr)
 	aitistid, err := strconv.Atoi(artistStr)
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -59,10 +60,14 @@ func (s *songHttpsHandler) SaveSong(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Song required"})
 	}
-	filenameCover := fmt.Sprintf("%d_%s", time.Now().Unix(), fileCover.Filename)
-	pathCover := "./uploads/cover/" + filenameCover
+	// filenameCover := fmt.Sprintf("%d_%s", time.Now().Unix(), fileCover.Filename)
+	// pathCover := "./uploads/cover/" + filenameCover
 
-	pathMusic := "./uploads/music/" + fileMusic.Filename
+	// pathMusic := "./uploads/music/" + fileMusic.Filename
+	coverURL, songURL, err := utils.UploadSong(fileCover, fileMusic)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	songs := service.Song{
 		Title:    title,
@@ -70,21 +75,21 @@ func (s *songHttpsHandler) SaveSong(c *fiber.Ctx) error {
 		Category: category,
 		ArtistID: uint(aitistid),
 		// Up:       up,
-		File:    fileMusic.Filename,
-		Cover:   "/cover/" + filenameCover,
+		File:    songURL,
+		Cover:   coverURL,
 		Sub:     sub,
 		Country: country,
 	}
 
 	err = s.service.Creat(songs)
 
-	if err := c.SaveFile(fileCover, pathCover); err != nil {
-		return err
-	}
+	// if err := c.SaveFile(fileCover, pathCover); err != nil {
+	// 	return err
+	// }
 
-	if err := c.SaveFile(fileMusic, pathMusic); err != nil {
-		return err
-	}
+	// if err := c.SaveFile(fileMusic, pathMusic); err != nil {
+	// 	return err
+	// }
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -203,5 +208,6 @@ func (u *songHttpsHandler) PlaySongNow(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"error": "not found"})
 	}
 
+	go u.service.UpdateId(id)
 	return c.JSON(data)
 }

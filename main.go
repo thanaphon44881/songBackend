@@ -9,19 +9,34 @@ import (
 	"music/utils"
 
 	"os"
+	// "fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Println(".env not found, using system environment")
-	}
+	// const (
+	// 	host     = "localhost"
+	// 	port     = 5432
+	// 	user     = "postgres"
+	// 	password = "Dream480201"
+	// 	dbname   = "l_music"
+	// )
+
+	// dsn := fmt.Sprintf("host=%s port=%d user=%s "+
+	// 	"password=%s dbname=%s sslmode=disable",
+	// 	host, port, user, password, dbname)
+	err := godotenv.Load()
 	dsn := os.Getenv("HDAtABACE")
+
+	if err != nil {
+		log.Fatal("โหลด .env ไม่ได้")
+	}
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect to database: " + err.Error())
@@ -34,7 +49,7 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "http://localhost:4200",
 		AllowCredentials: true,
-		AllowHeaders:     "Origin, Content-Type, Accept",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
 	}))
 	//User
@@ -96,6 +111,5 @@ func main() {
 	app.Delete("/library/:sonId", userlibraryHandler.DeleteUserLibrary)
 	app.Get("/library/:songId", userlibraryHandler.ShowSong)
 
-	port := os.Getenv("PORT")
-	log.Fatal(app.Listen(":" + port))
+	log.Fatal(app.Listen(":8000"))
 }
